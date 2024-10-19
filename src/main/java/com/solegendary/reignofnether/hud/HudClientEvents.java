@@ -89,12 +89,21 @@ public class HudClientEvents {
 
     // eg. entity.reignofnether.zombie_unit -> zombie
     public static String getSimpleEntityName(Entity entity) {
-        if (entity instanceof Unit)
-            return entity.getName().getString()
-                .replace(" ","")
-                .replace("entity.reignofnether.","")
-                .replace("_unit","")
-                .replace(".none","");
+        if (entity instanceof Unit) {
+            if (entity.hasCustomName()) {
+                return entity.getType().getDescription().getString()
+                        .replace(" ","")
+                        .replace("entity.reignofnether.","")
+                        .replace("_unit","")
+                        .replace(".none","");
+            } else {
+                return entity.getName().getString()
+                        .replace(" ","")
+                        .replace("entity.reignofnether.","")
+                        .replace("_unit","")
+                        .replace(".none","");
+            }
+        }
         else
             return entity.getName().getString();
     }
@@ -172,6 +181,8 @@ public class HudClientEvents {
             hudZones.add(buildingPortraitZone);
 
             blitX += portraitRendererBuilding.frameWidth + 10;
+
+            blitXStart = blitX + 20;
 
 
             // ---------------------------
@@ -281,19 +292,25 @@ public class HudClientEvents {
 
                     // name and progress %
                     ProductionItem firstProdItem = selProdBuilding.productionQueue.get(0);
-                    float percentageDone = (float) firstProdItem.ticksLeft / (float) firstProdItem.ticksToProduce;
+                    float percentageDoneInv = (float) firstProdItem.ticksLeft / (float) firstProdItem.ticksToProduce;
 
+                    int colour = 0xFFFFFF;
+                    if (!firstProdItem.isBelowPopulationSupply()) {
+                        colour = 0xFF0000;
+                        if (percentageDoneInv <= 0)
+                            percentageDoneInv = 0.01f;
+                    }
                     GuiComponent.drawString(evt.getPoseStack(), MC.font,
-                            Math.round(100 - (percentageDone * 100f)) + "% " + productionButtons.get(0).name,
+                            Math.round(100 - (percentageDoneInv * 100f)) + "% " + productionButtons.get(0).name,
                             blitX + iconFrameSize + 5,
                             blitY + 2,
-                            0xFFFFFF);
+                            colour);
 
                     int buttonsRendered = 0;
                     for (Button prodButton : productionButtons) {
                         // top row for currently-in-progress item
                         if (buttonsRendered == 0) {
-                            prodButton.greyPercent = 1 - percentageDone;
+                            prodButton.greyPercent = 1 - percentageDoneInv;
                             prodButton.render(evt.getPoseStack(), blitX, blitY - 5, mouseX, mouseY);
                             renderedButtons.add(prodButton);
                         }
@@ -382,6 +399,9 @@ public class HudClientEvents {
 
             // write capitalised unit name
             String name = getSimpleEntityName(hudSelectedEntity).replace("_"," ");
+            if (hudSelectedEntity.hasCustomName())
+                name = hudSelectedEntity.getCustomName().getString();
+
             String nameCap = name.substring(0, 1).toUpperCase() + name.substring(1);
 
             unitPortraitZone = portraitRendererUnit.render(
@@ -744,7 +764,11 @@ public class HudClientEvents {
 
             blitY = resourceBlitYStart;
             for (String resourceName : new String[]{ "Food", "Wood", "Ore", "Population" }) {
-                List<FormattedCharSequence> tooltip = List.of(FormattedCharSequence.forward(resourceName, Style.EMPTY));
+                List<FormattedCharSequence> tooltip;
+                if (resourceName.equals("Population"))
+                    tooltip = List.of(FormattedCharSequence.forward(resourceName + " (Max: " + maxPopulation + ")", Style.EMPTY));
+                else
+                    tooltip = List.of(FormattedCharSequence.forward(resourceName, Style.EMPTY));
                 if (mouseX >= blitX &&
                         mouseY >= blitY &&
                         mouseX < blitX + iconFrameSize &&
@@ -824,7 +848,7 @@ public class HudClientEvents {
         // ------------------------------
         // Start buttons (spectator only)
         // ------------------------------
-        if (!PlayerClientEvents.isRTSPlayer) {
+        if (!PlayerClientEvents.isRTSPlayer && !PlayerClientEvents.rtsLocked) {
             if (!StartButtons.villagerStartButton.isHidden.get()) {
                 StartButtons.villagerStartButton.render(evt.getPoseStack(),
                         screenWidth - (StartButtons.ICON_SIZE * 6),

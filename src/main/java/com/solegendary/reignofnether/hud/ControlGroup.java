@@ -131,20 +131,22 @@ public class ControlGroup {
                         .sorted(Comparator.comparing(HudClientEvents::getSimpleEntityName))
                         .toList();
 
-                String hudSelectedEntityName = HudClientEvents.getSimpleEntityName(hudSelectedEntity);
-                String lastEntityName = "";
-                boolean cycled = false;
-                for (LivingEntity entity : entities) {
-                    String currentEntityName = HudClientEvents.getSimpleEntityName(entity);
-                    if (lastEntityName.equals(hudSelectedEntityName) && !currentEntityName.equals(lastEntityName)) {
-                        hudSelectedEntity = entity;
-                        cycled = true;
-                        break;
+                if (hudSelectedEntity != null) {
+                    String hudSelectedEntityName = HudClientEvents.getSimpleEntityName(hudSelectedEntity);
+                    String lastEntityName = "";
+                    boolean cycled = false;
+                    for (LivingEntity entity : entities) {
+                        String currentEntityName = HudClientEvents.getSimpleEntityName(entity);
+                        if (lastEntityName.equals(hudSelectedEntityName) && !currentEntityName.equals(lastEntityName)) {
+                            hudSelectedEntity = entity;
+                            cycled = true;
+                            break;
+                        }
+                        lastEntityName = currentEntityName;
                     }
-                    lastEntityName = currentEntityName;
+                    if (!cycled)
+                        hudSelectedEntity = entities.get(0);
                 }
-                if (!cycled)
-                    hudSelectedEntity = entities.get(0);
             }
         }
         else if (buildingBps.size() > 0) {
@@ -153,13 +155,13 @@ public class ControlGroup {
             BuildingClientEvents.clearSelectedBuildings();
             for (BlockPos bp : buildingBps)
                 for (Building building : BuildingClientEvents.getBuildings())
-                    if (building.originPos == bp)
+                    if (building.originPos.equals(bp))
                         BuildingClientEvents.addSelectedBuilding(building);
 
             if (doubleClicked) {
                 BlockPos pos = buildingBps.get(0);
                 for (Building building : BuildingClientEvents.getBuildings())
-                    if (building.originPos == pos)
+                    if (building.originPos.equals(pos))
                         OrthoviewClientEvents.centreCameraOnPos(building.centrePos.getX(), building.centrePos.getZ());
             }
         }

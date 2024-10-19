@@ -26,6 +26,7 @@ Reign of Nether doesn't try to imitate one of these games exactly, but instead a
 | Monsters Race | ✔ |  |  
 | Piglins Race | ✔ |  |  
 | Fog of war | 🟡 | Still has performance issues and some bugs |  
+| Singleplayer modes | ❌ | Planning a wave survival mode! |  
 | Improved vanilla player features | ❌ | Give vanilla-mode players more interaction with their RTS teammates |
 | Teams | ❌ | Including resource trading, shared unit control, etc. |
 
@@ -42,7 +43,8 @@ The Curseforge mod page and release files are available here:
 https://www.curseforge.com/minecraft/mc-mods/reign-of-nether-rts-in-minecraft
 
 # License
-All rights reserved
+GNU General Public License v3.0
+See License.txt for the full text
 
 # Other stuff
 I am just working on this on and off in my free time so I don't have a strict dev schedule or roadmap. If you want to contact me directly for suggestions, advice or just to have a chat, feel free to DM me at /u/SoLegendary on Reddit.
